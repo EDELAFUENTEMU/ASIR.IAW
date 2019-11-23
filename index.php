@@ -15,7 +15,6 @@
     catch(PDOException $e){
         global $error;
         $error = true;
-        alert($e->getMessage(),4);
     }
     function sql_insert($nombre, $apellidos, $tlf, $email){
         global $database;
@@ -39,12 +38,13 @@
         return $stmt;
     }
     function sql_delete($ids){
-        global $database;
+        global $database; 
+        $result;
         foreach($ids as $id){
             $sql='DELETE FROM alumnos WHERE CODIGO = :id';
             $stmt=$database->prepare($sql);
             $stmt->bindParam(':id', $id);
-            $stmt->execute();
+            $result[] = $stmt->execute();
         }
     }
     function sql_update($ids, $nombre, $apellidos, $tlf, $email){
@@ -64,11 +64,62 @@
     
 
 ///controlador
+    $alert=''; $table='<span class="display-2 text-center d-block mt-4"><b>Mayday Houston!</b><br><span class="display-4">Error 40X.y.</span><span>';
+
+    //main. recibe parametros por post
+    if(isset($_POST['btnEnviar'])&&$error==false){ 
+        switch ($_POST['estado']){
+            case 'insert':
+                $arr = ['nombre','apellidos','telefono','email'];
+                $exp = ['/[A-Za-z\s]+/','/[A-Za-z\s]+/','/[0-9]{8}/','/[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.([a-zA-Z]{2,4})+$/'];
+                foreach($arr as $key =>$item){
+                    if (!preg_match($exp[$key], $_POST[$item])){
+                        alert("El campo $item no cumple la condición o esta vacio",2); 
+                        break 2;
+                    }
+                }
+                insert($_POST['nombre'], $_POST['apellidos'], $_POST['telefono'], $_POST['email']);
+                break;
+            case 'delete':
+                foreach ($_POST['ids'] as $item){
+                    if (!preg_match('/^[0-9]+$/', $item)){
+                        alert("Error validación identificadores.",3); 
+                        break 2;
+                    }
+                }
+                delete($_POST['ids']);
+                break;
+            case 'query':
+                if (!preg_match('/^[A-Za-z0-9\s]+$/', $_POST['nombre'])){
+                    alert("Caractere no aceptado de busqueda.",2); 
+                    break;
+                }
+                query($_POST['nombre']);
+                break;
+            case 'update':
+                $arr = ['CODIGO','NOMBRE','APELLIDOS','TELEFONO','CORREO'];
+                $exp = ['/^[0-9]+$','/[A-Za-z\s]+/','/[A-Za-z\s]+/','/[0-9]{8}/','/[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.([a-zA-Z]{2,4})+$/'];
+                foreach($arr as $key =>$item){
+                    if (!preg_match($exp[$key], $_POST[$item])){
+                        alert("El campo $item no cumple la condición o esta vacio",2); 
+                        break 2;
+                    }
+                }
+                update($_POST['CODIGO'],$_POST['NOMBRE'],$_POST['APELLIDOS'],$_POST['TELEFONO'],$_POST['CORREO']);
+                break;
+        }
+    }elseif($error==false){
+        query('');
+    }else{
+       alert($e->getMessage(),4);
+       $table='<span class="display-2 text-center d-block mt-4"><b>Mayday Houston!</b><br><span class="display-4">  Perdimos la conexión.</span><span>';
+    }
+
     function query($value){ 
         $stmt = sql_query($value);
         
         global $table;
-        $table='<table class="table table-striped table-dark table-hover table-sm">';
+        $table='<table class="table table-striped table-dark table-sm">';
         $flag_cabecera=true; 
         
         while ($row = $stmt->fetch()){
@@ -80,11 +131,7 @@
                 }
                 $table.='</tr>';
             }
-            $table.="<tr><td><input type='checkbox' class='' name='ids[]' value=".$row["CODIGO"]." id=".$row["CODIGO"]."></td>";
-                        /*."<div class='custom-control custom-checkbox mb-3 inline'>"
-                            ."<input type='checkbox' class='custom-control-input' name='ids[]' value=".$row["CODIGO"]." id=".$row["CODIGO"].">"
-                            ."<label class='custom-control-label' for='".$row["CODIGO"]."' onclick='habilitar(".$row['CODIGO'].",this);'></label>"
-                        ."</div></td>";*/
+                $table.="<tr><td><input type='checkbox' disabled name='ids[]' value=".$row["CODIGO"]." id=".$row["CODIGO"]." onclick='habilitar(".$row['CODIGO'].",this);'></td>";
                 foreach ($row as $key => $valor){
                 if($key == 'CODIGO'){
                     $table .= "<td><input type='text' name='".$key."[]' data-id=".$row['CODIGO']." value='".$valor."' disabled='disabled' readonly></td>";
@@ -103,9 +150,10 @@
          $result = sql_query($mail); 
          $num = $result->rowCount();
          if($result->rowCount() < 1){ #comprueba que no exista un usuario con ese email
-             sql_insert($nombre, $apellidos, $tlf, $mail);
+             $r = sql_insert($nombre, $apellidos, $tlf, $mail);
+             alert ("Se ha insertado a $nombre exitosamente",1);
          }else{
-             alert ('El usuario ya existe. Insercion rechazada',3);
+             alert ('El usuario ya existe',3);
          }
          query('');
     }
@@ -113,10 +161,8 @@
         sql_update($ids, $nombre, $apellidos, $tlf, $mail);
         query('');
     }
-    
-    
-        
-    $alert='';
+
+    //ocupa de mostrar mensajes
     function alert($msg,$grav){
         $style;
         switch ($grav){
@@ -133,39 +179,15 @@
                 $style='alert-warning';
             break;
             case 4: //dark --problemas de bd
-                $msg = '<strong>Dark Code!</strong> '.$msg;
+                $msg = '<strong>Black Alert!</strong> '.$msg;
                 $style='alert-dark';
             break;
         }
         global $alert; 
-        $alert = "<div class='container mt-2 alert $style alert-dismissible fade show'>"
+        $alert .= "<div class='container mt-2 alert $style alert-dismissible fade show'>"
             ."<button type='button' class='close' data-dismiss='alert'>×</button>$msg</div>";
     }
 
-
-
-
-if(isset($_POST['btnEnviar'])&&$error==false){
-	switch ($_POST['estado']){
-		case 'insert':
-            insert($_POST['nombre'], $_POST['apellidos'], $_POST['telefono'], $_POST['email']);
-			break;
-		case 'delete':
-            delete($_POST['ids']);
-			break;
-		case 'query':
-            query($_POST['nombre']);
-			break;
-		case 'update':
-            update($_POST['CODIGO'],$_POST['NOMBRE'],$_POST['APELLIDOS'],$_POST['TELEFONO'],$_POST['CORREO']);
-			break;
-	}
-}elseif($error==false){
-    query('');
-}else{
-   alert($e->getMessage(),4);
-   $table='<span class="display-2 text-center d-block mt-4"><b>Mayday Houston!</b><br><span class="display-4">  Perdimos la conexión.</span><span>';
-}
 
 ?>
 <!DOCTYPE html>
@@ -198,7 +220,10 @@ if(isset($_POST['btnEnviar'])&&$error==false){
                 border: 0;
             }
             table th{
-                background-color: cadetblue;
+                background-color: #0062cc;
+            }
+            .selectRow{
+                background-color: skyblue !important;
             }
             
             .btn-primary .badge {
@@ -224,44 +249,55 @@ if(isset($_POST['btnEnviar'])&&$error==false){
     </head>
     <script type="text/javascript">
         function habilitar(id,elementDOM) {
-            if(document.getElementById('rUpdate').checked){ //si el tipo de operacion es actualizar                
-                var inputs = document.getElementsByTagName('table')[0].getElementsByTagName('input');
+            var inputs = document.getElementsByTagName('table')[0].getElementsByTagName('input'); //todos los input del form
+            $numT = parseInt(document.getElementsByClassName('badge')[0].textContent,10); //numero de checkbox seleccionados
+            
+            if(elementDOM.checked==true){ //indistintamente tanto para delete como update. A la insignia le suma o le quita
+                document.getElementsByClassName('badge')[0].textContent = $numT + 1;
+            }else{
+                document.getElementsByClassName('badge')[0].textContent = $numT - 1;
+            }
+            
+            if(document.getElementById('rUpdate').checked){ //solo para actualizar                
                 for (let elemento of inputs){
                     if(elemento.dataset.id == id){
                         if(elementDOM.checked==true){
-                            document.getElementsByClassName('badge')[0].text++
-                            elemento.disabled=false;
-                            elemento.style.backgroundColor="red";
+                            elemento.disabled=false; //habilito las casillas de escritura
+                            elemento.parentNode.parentNode.classList.add('selectRow');
                         }else{
-                            document.getElementsByClassName('badge')[0].text--
                             elemento.disabled=true;
+                            elemento.parentNode.parentNode.classList.remove('selectRow');
                         }
                     }
                 }
             }
+            
         }
-        function nameBtn(name){
+        function nameBtn(name){ 
             switch (name){
                 case 'Consultar':
-                    document.getElementsByName('btnEnviar')[0].innerHTML= 'Buscar';
-                    for(item of document.getElementsByClassName('search_insert')){item.style.display='inline';}
-                    for(item of document.getElementsByClassName('insert')){item.style.display='none';}
-                    for(item of document.getElementsByName('ids[]')){item.disabled=true}
+                    document.getElementsByName('btnEnviar')[0].innerHTML= 'Buscar'; //cambia el contenido del boton
+                    for(item of document.getElementsByClassName('search_insert')){item.style.display='inline';} //muestra campo nombre->search & insert
+                    for(item of document.getElementsByClassName('insert')){item.style.display='none';} //muestra todos los campos
+                    for(item of document.getElementsByName('ids[]')){item.disabled=true} //bloquea los checkbox
                     break;
                 case 'Insertar':
-                    document.getElementsByName('btnEnviar')[0].innerHTML= 'Insertar';
-                    for(item of document.getElementsByClassName('insert')){item.style.display='inline';}
-                    for(item of document.getElementsByName('ids[]')){item.disabled=true}
+                    document.getElementsByName('btnEnviar')[0].innerHTML= 'Insertar'; //cambia el contenido del boton
+                    for(item of document.getElementsByClassName('insert')){item.style.display='inline';} //muestra todos los campos
+                    for(item of document.getElementsByName('ids[]')){item.disabled=true} //bloquea los checkbox
                     break;
                 case 'Actualizar':
-                    document.getElementsByName('btnEnviar')[0].innerHTML= 'Modificar <span class="badge">0</span>';
-                    for(item of document.querySelectorAll('.insert, .search_insert')){item.style.display='none';}
-                    for(item of document.getElementsByName('ids[]')){item.disabled=false}
+                    document.getElementsByName('btnEnviar')[0].innerHTML= 'Modificar <span class="badge">0</span>'; //cambia el contenido del boton
+                    for(item of document.querySelectorAll('.insert, .search_insert')){item.style.display='none';} //quita los campos del formulario insert
+                    for(item of document.getElementsByName('ids[]')){item.disabled=false} //desbloquea los checkbox
+                    for(item of document.getElementsByTagName('table')[0].getElementsByTagName('input')){item.checked=false}
+                    for(item of document.getElementsByTagName('tr')){item.classList.remove('selectRow');}
                     break;
                 case 'Eliminar':
-                    document.getElementsByName('btnEnviar')[0].innerHTML= 'Eliminar <span class="badge">0</span>';
-                    for(item of document.querySelectorAll('.insert, .search_insert')){item.style.display='none';}
-                    for(item of document.getElementsByName('ids[]')){item.disabled=false}
+                    document.getElementsByName('btnEnviar')[0].innerHTML= 'Eliminar <span class="badge">0</span>'; //cambia el contenido del boton
+                    for(item of document.querySelectorAll('.insert, .search_insert')){item.style.display='none';} //quita los campos del formulario insert
+                    for(item of document.getElementsByName('ids[]')){item.disabled=false} //desbloquea los checkbox
+                    for(item of document.getElementsByTagName('tr')){item.classList.remove('selectRow');}
                     break;
             }
         }
@@ -270,7 +306,7 @@ if(isset($_POST['btnEnviar'])&&$error==false){
         <!--header-->
         <nav class="navbar navbar-dark bg-dark">   
             <div class="container">
-                <h1 class="text-white">Alumnos</h1>
+                <h1 class="display-4">Alumnos</h1>
                 <div class=" class="btn-group btn-group-toggle" data-toggle="buttons"">
                   <label class="btn btn-secondary active btn-rounded form-check-label" onclick="nameBtn('Insertar')">
                     <input form="default" class="form-check-input" type="radio" name="estado" value="insert" onclick="nameBtn('Insertar')" checked> Insertar
