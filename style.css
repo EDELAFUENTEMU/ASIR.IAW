@@ -1,0 +1,56 @@
+body{
+                background-image: url('http://wallpapers.org.es/wp-content/uploads/2012/11/fondo-degradado-1024x640.jpg');
+                background-size: cover;
+                background-repeat: no-repeat;
+                
+            }
+            
+            nav input[type=radio]{
+                display: none;
+            }
+            div table{
+                overflow: auto;
+                max-height: 70vh;
+            }
+            table input[type=text]{
+                background: none;
+                color: white;
+                border: 0;
+                width: 100%;
+            }
+            table td:nth-child(2) input[type=text]{
+                text-align: center;
+            }
+            table th{
+                background-color: #0062cc;
+            }
+			table td:nth-child(-n+2),  th:nth-child(-n+2) {
+				width: 30px !important;
+                text-align: center;
+			}
+            .selectRow{
+                background-color: skyblue !important;
+            }
+            
+            .btn-primary .badge {
+                color: #337ab7;
+                background-color: #fff;
+            }
+
+            .badge {
+                display: inline-block;
+                min-width: 10px;
+                padding: 3px 7px;
+                font-size: 12px;
+                font-weight: 700;
+                line-height: 1;
+                color: #fff;
+                text-align: center;
+                white-space: nowrap;
+                vertical-align: middle;
+                background-color: #777;
+                border-radius: 10px;
+            }
+.oi{
+    font-size: 0.9em;
+}
