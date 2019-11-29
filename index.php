@@ -1,9 +1,20 @@
 <?php
 ##vista
-	$table='';$alerta='';
-	include_once ('modelo.php');
-	include_once ('logica.php');
 
+try{
+ $archivos = array('model.php','logica.php');
+ foreach($archivos as $archivo){
+    if (file_exists($archivo) && is_readable($archivo)) {
+        require_once $archivo;
+    }else {
+        throw new Exception("El archivo ".$archivo." does not exists or is not readable.");
+    }
+ }
+}catch (Exception $e) {
+    $alert="<div class='container mt-2 alert alert-warning alert-dismissible fade show'><button type='button' class='close' data-dismiss='alert'>×</button><strong>Error! Problema con la conexion de datos. Consulte con el provedor del sistema</strong></div>'";
+    $table='<span class="display-2 text-center d-block mt-4"><b>Mayday Houston!</b><br><span class="display-4">Error 40X.y.</span><span>';
+    
+}
 	
 ?>
 
@@ -43,30 +54,33 @@
                 </div>
             </div>
         </nav>
-        <!-- div de alerta -->
-        <?php echo $alert; ?>
-           <form action="" method="post" id='default'class="container">
-               <div class="form-row rounded mt-3 p-2 shadow bg-white justify-content-end">
-                    <div class="col search_insert">
-                        <input class="form-control" type="text" name="nombre" placeholder="Nombre">
-                    </div>    
-                    <div class="col insert">
-                        <input class="insert form-control" type="text" name="apellidos" placeholder="Apellidos">
-                    </div>  
-                    <div class="col insert">
-                        <input class="insert form-control" type="text" name="telefono" placeholder="Teléfono">
-                    </div>  
-                    <div class="col insert">
-                        <input class="insert form-control" type="email" name="email" placeholder="Email">
-                    </div>  
-                    <div class="col col-2">
-                        <button class="btn btn-primary col-md-12" type="submit" name="btnEnviar" form="default">
-                            Insertar
-                        </button>       
-                    </div>  
-               </div>  
+        <!-- aqui va el div de alerta -->
+            <?php echo $alert; ?>
+        <!-- fin del div de alerta -->
+       <form action="" method="post" id='default' class="container" onsubmit="return validacion();">
+           <div class="form-row rounded mt-3 p-2 shadow bg-white justify-content-end">
+                <div class="col search_insert">
+                    <input class="form-control" type="text" name="nombre" placeholder="Nombre">
+                </div>    
+                <div class="col insert">
+                    <input class="insert form-control" type="text" name="apellidos" placeholder="Apellidos">
+                </div>  
+                <div class="col insert">
+                    <input class="insert form-control" type="text" name="telefono" placeholder="Teléfono">
+                </div>  
+                <div class="col insert">
+                    <input class="insert form-control" type="email" name="email" placeholder="Email">
+                </div>  
+                <div class="col col-2">
+                    <button class="btn btn-primary col-md-12" type="submit" name="btnEnviar" form="default">
+                        Insertar
+                    </button>       
+                </div>  
+            </div>  
             <div class="mt-4 overflow-auto" style="max-height:70vh; overflow:auto">
+               <!-- aqui va la tabla -->
                 <?php echo $table; ?>
+               <!-- fin de la tabla de resultados -->
             </div>  
         </form>    
         

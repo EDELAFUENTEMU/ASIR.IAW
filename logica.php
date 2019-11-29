@@ -1,6 +1,6 @@
 <?php
 ///controlador
-    $alert=''; $table='<span class="display-2 text-center d-block mt-4"><b>Mayday Houston!</b><br><span class="display-4">Error 40X.y.</span><span>';
+    $alert='';
 
     //main. recibe parametros por post
     if(isset($_POST['btnEnviar'])&&$error==false){ 
@@ -41,6 +41,7 @@
                 $arr = ['CODIGO','NOMBRE','APELLIDOS','TELEFONO','CORREO'];
                 $exp = ['/^[0-9]+$','/[A-Za-z\s]+/','/[A-Za-z\s]+/','/[0-9]{8}/','/[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.([a-zA-Z]{2,4})+$/'];
                 foreach($arr as $key =>$item){
+                    print($exp[$key]);
                     if (!isset($_POST[$item]) || !preg_match($exp[$key], $_POST[$item])){
                         alert("El campo $item no cumple la condición o esta vacio",2); 
                         break 2;
@@ -117,7 +118,7 @@
             break;
             case 3: //peligro
                 $msg = '<strong>Error!</strong> '.$msg;
-                $style='alert-warning';
+                $style='alert-error';
             break;
             case 4: //dark --problemas de bd
                 $msg = '<strong>Black Alert!</strong> '.$msg;
