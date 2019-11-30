@@ -1,8 +1,8 @@
 <?php
 ///controlador
-    $alert='';
+    $alert='';$table='';
 
-    //main. recibe parametros por post
+    //main. recibe parametros por post y validación en el lado del servidor
     if(isset($_POST['btnEnviar'])&&$error==false){ 
         switch ($_POST['estado']){
             case 'insert':
@@ -39,12 +39,19 @@
                 break;
             case 'update':
                 $arr = ['CODIGO','NOMBRE','APELLIDOS','TELEFONO','CORREO'];
-                $exp = ['/^[0-9]+$','/[A-Za-z\s]+/','/[A-Za-z\s]+/','/[0-9]{8}/','/[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.([a-zA-Z]{2,4})+$/'];
+                $exp = ['/^[0-9]+$/','/[A-Za-z\s]+/','/[A-Za-z\s]+/','/[0-9]{8}/','/[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.([a-zA-Z]{2,4})+$/'];
+                
                 foreach($arr as $key =>$item){
-                    print($exp[$key]);
-                    if (!isset($_POST[$item]) || !preg_match($exp[$key], $_POST[$item])){
-                        alert("El campo $item no cumple la condición o esta vacio",2); 
-                        break 2;
+                    if (isset($_POST[$item])){
+                        foreach($_POST[$item] as $valor){
+                            if(!preg_match($exp[$key], $valor)){
+                               alert("El campo $item no cumple la condición o esta vacio",2); 
+                               break 3; 
+                            }
+                        }
+                    }else{
+                        alert("El campo $item no se ha enviado correctamente",2); 
+                        break 2; 
                     }
                 }
                 update($_POST['CODIGO'],$_POST['NOMBRE'],$_POST['APELLIDOS'],$_POST['TELEFONO'],$_POST['CORREO']);
@@ -104,7 +111,7 @@
         query('');
     }
 
-    //ocupa de mostrar mensajes
+    //se ocupa de mostrar mensajes
     function alert($msg,$grav){
         $style;
         switch ($grav){
@@ -118,7 +125,7 @@
             break;
             case 3: //peligro
                 $msg = '<strong>Error!</strong> '.$msg;
-                $style='alert-error';
+                $style='alert-danger';
             break;
             case 4: //dark --problemas de bd
                 $msg = '<strong>Black Alert!</strong> '.$msg;
