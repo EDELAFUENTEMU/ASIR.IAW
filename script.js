@@ -69,9 +69,18 @@ function validacion(){
                 var apellidos = validarTxt(document.forms[0].apellidos.value);
                 var telefono = validarTlf(document.forms[0].telefono.value);
                 var email=validarEmail(document.forms[0].email.value);
-                console.log(nombre,apellidos,telefono,email);
-                if( !nombre || !apellidos || !telefono || !email ){
-                    alert('Error en los campos! Vuelva a intentarlo');
+                
+                if( !nombre){//solo admite A-Za-z y espacios
+                    alert('Error en el campo Nombre!');
+                    return false;
+                }elseif( !apellidos){
+                    alert('Error en el campo Apellido!');
+                    return false;
+                }elseif ( !telefono ){//numero de tlf de 9 digitos que empiece por 6,7o9
+                    alert('Error en el campo Telefono!');
+                    return false;
+                }elseif(!email){
+                    alert('Error en el campo E-mail!');
                     return false;
                 }
             break;
@@ -79,7 +88,7 @@ function validacion(){
                 document.forms[0].ids.forEach(
                     function(id){
                         if(validarId(id.value)!=true){
-                            alert('error procesar el id '+id.value);
+                            alert('Error procesar el id '+id.value);
                             return false;
                         }
                     });
@@ -87,14 +96,11 @@ function validacion(){
         }
         return flag;
     }else{
-        alert('error en el tipo de operacion');
+        alert('Error! Seleccione un tipo de operación');
         return false;
     }
     
-   
-
-}
- function validarTxt(valor){
+    function validarTxt(valor){
         if(/^[a-zA-Z ]+$/.test(valor) ){
                return true;
         }
@@ -118,3 +124,6 @@ function validacion(){
         }
         return false;
     }
+
+}
+    
